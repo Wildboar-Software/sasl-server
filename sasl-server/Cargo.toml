@@ -1,0 +1,36 @@
+[package]
+name = "sasl-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "sasl-server"
+path = "src/main.rs"
+
+[dependencies]
+tonic = "0.9"
+prost = "0.11"
+prost-types = "0.11"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1.0.71"
+log4rs = "1.2.0"
+log = "0.4"
+# rand = "0.8.5"
+chrono = "0.4.26"
+ulid = "1.1.0"
+# redb = "1.5.0"
+# bytemuck = { version = "1.14.1", features = ["derive", "must_cast"] }
+unicode-normalization = "0.1"
+
+# The std feature makes this implement std::error::Error on error types.
+scrypt = { version = "0.11", default-features = false, features = ["std"]}
+constant_time_eq = "=0.3.0"
+smallvec = "1.13.2"
+# warp = "0.3"
+# yew = { version = "0.20.0", features = ["ssr"] }
+# hex = "0.4.3"
+
+[build-dependencies]
+tonic-build = "0.9"

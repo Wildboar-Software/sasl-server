@@ -1,0 +1,126 @@
+syntax = "proto3";
+package sasl;
+import "google/protobuf/empty.proto";
+
+service SaslService {
+    rpc GetAvailableMechanisms (google.protobuf.Empty) returns (GetAvailableMechanismsResult);
+    rpc Authenticate (AuthenticateArg) returns (AuthenticateResult);
+}
+
+message TLSInformation {
+    uint32 major = 1; // If major is 0, the struct is treated as absent.
+    uint32 minor = 2;
+    uint32 cipher = 3;
+    repeated bytes peer_certificate_chain = 4;
+}
+
+message AuthenticateArg {
+    string mechanism = 1;
+    bytes attemptId  = 2; // MUST be EXACTLY 16 bytes.
+    bytes assertion = 3;
+    bytes local_ip = 4;
+    uint32 local_port = 5;
+    bytes remote_ip = 6; // four bytes for IPv4. sixteen for IPv6.
+    uint32 remote_port = 7;
+    bool submitted_securely = 8; // Whether the assertion was submitted over TLS or something like that.
+    string requested_host = 9; // The requested host, such as is sent via TLS SNI or the HTTP Host header.
+    TLSInformation tls_info = 10;
+    bool ignore_penalty = 11; // Do not increment invalid attempts.
+}
+
+message OtherUserDatum {
+    string name = 1;
+    bytes value = 2;
+}
+
+message PersonName {
+    string prefix = 1;
+    string given_name = 2;
+    string middle_name = 3;
+    string surname = 4;
+    string generation_qualifier = 5;
+    string suffix = 6; // PH.D., M.D., etc.
+}
+
+message Date {
+    uint32 year = 1;
+    uint32 month = 2;
+    uint32 day = 3;
+}
+
+// Most of these are taken from: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+message UserInformation {
+    string user_id = 1;
+    string display_name = 2;
+    PersonName name = 3;
+    string pseudonym = 4;
+    string profile_url = 5;
+    string picture_url = 6;
+    // bytes picture = 7;
+    string phone = 8;
+    bool phone_verified = 9;
+    string email = 10;
+    bool email_verified = 11;
+    // TODO: gender
+    Date birthday = 13; // FIXME: Use the google protobuf date type.
+    string timezone = 14;
+    string locale = 15;
+    repeated string postal_address = 18;
+    repeated string mailing_address = 19;
+    repeated string billing_address = 20;
+    bool admin = 21;
+    uint32 uid = 22;
+    uint32 gid = 23;
+    uint64 storage_quota = 24;
+    string home_directory = 25;
+    string chroot = 26;
+    // more quota types?
+    // clearance
+    // color
+    // banner picture?
+    // more URLs?
+    // work phone, work email, etc.
+    // DN
+    // certificate?
+
+    // I thought I read somewhere that tags greater than 26 was a problem.
+    repeated OtherUserDatum other_info = 30;
+}
+
+message AuthenticateResult {
+    oneof outcome {
+        bool decision = 1; // true = succeeded, false = failed.
+        bytes continuation = 2; // non-zero length if challenge returned.
+        // Open-ended string for reporting errors to the SASL client, but not to the user.
+        string internal_error = 3;
+    }
+    bool user_disabled = 4;
+    bool all_auth_disabled = 5;
+    UserInformation user_info = 6;
+}
+
+message Mechanism {
+    string name = 1;
+    bool anonymous = 2;
+    bool transfers_plaintext_passwords = 3;
+    bool subject_to_dictionary_attack = 4;
+    bool subject_to_non_dictionary_attack = 5;
+    bool provides_forward_secrecy = 6;
+    bool provides_mutual_authentication = 7;
+    bool do_not_advertise = 8;
+    // Fields provided in the UserInformation by this mechanism, including
+    // those of the the other_info. This is so relying apps can determine
+    // if an authentication mechanism will be suitable.
+    repeated string info_provided = 9;
+}
+
+message GetAvailableMechanismsResult {
+    // The relying application can still choose which of these to accept.
+    repeated Mechanism mechanisms = 1;
+
+    // Fields provided in the UserInformation by all mechanisms, including
+    // those of the the other_info. This is so relying apps can determine
+    // if an authentication mechanism will be suitable. These do not need to
+    // be repeated in the other mechanism-specific ones.
+    repeated string info_provided = 9;
+}
