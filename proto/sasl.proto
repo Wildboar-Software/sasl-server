@@ -89,14 +89,21 @@ message UserInformation {
 
 message AuthenticateResult {
     oneof outcome {
-        bool decision = 1; // true = succeeded, false = failed.
-        bytes continuation = 2; // non-zero length if challenge returned.
+        // true = succeeded, false = failed.
+        bool decision = 1; 
+
+        // Non-zero length if challenge returned.
+        bytes continuation = 2;
+
+        // An open-ended string for reporting malformed assertion syntax, possibly to the user.
+        string invalid_assertion = 3;
+
         // Open-ended string for reporting errors to the SASL client, but not to the user.
-        string internal_error = 3;
+        string internal_error = 4;
     }
-    bool user_disabled = 4;
-    bool all_auth_disabled = 5;
-    UserInformation user_info = 6;
+    bool user_disabled = 5;
+    bool all_auth_disabled = 6;
+    UserInformation user_info = 7;
 }
 
 message Mechanism {

@@ -86,6 +86,7 @@ more information about the user.
 ## To Do
 
 - [ ] Identity Store
+  - [x] Memory (Might be renamed to `UsersFile`)
   - [ ] X.500 Directory
   - [ ] LDAP Server
   - [ ] OpenID
@@ -94,10 +95,30 @@ more information about the user.
   - [ ] Rhai Script
   - [ ] SQL Database
 - [ ] Authentication Mechanisms
-  - [ ] `PLAIN`
-  - [ ] `OTP`
-  - [ ] `OPENID`
+  - [x] `PLAIN`
+  - [x] `OTP` (Apparently, this has NO relation to the HOTP or TOTP widely in use now...)
+  - [x] `ANONYMOUS` (It takes an arbitrary "trace string." Unclear if it can fail.)
+  - [ ] `OAUTHBEARER`
+    - [ ] Token introspection https://www.rfc-editor.org/rfc/rfc7662
+  - [ ] `EXTERNAL`
+    - Takes UTF-8 authorization identity
+  - [ ] `SCRAM-*`
+  - [ ] `SAML20`
+    - This is going to require an HTTP endpoint where responses can be received.
+    - Exposing a public HTTP service diminishes the security of this...
+  - [ ] `OAUTH10A`
+  - [ ] `OPENID20`
+    - I just learned today that this is not the same as OpenID Connect...
   - [ ] `KERBEROS5`
+  - [ ] `SECURID`
+  - [ ] `EAP-AES128`
+  - [ ] `EAP-AES128-PLUS`
+  - [ ] `GS2-KRB5`
+  - [ ] `GS2-KRB5-PLUS`
+- [ ] Not-yet-defined authentication mechanisms
+  - [ ] `OPENID-CONNECT`
+  - [ ] `HOTP`
+  - [ ] `TOTP`
 - [ ] Credential change interface?
 - [ ] Web Interface?
 

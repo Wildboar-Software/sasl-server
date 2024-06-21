@@ -1,6 +1,5 @@
-use crate::types::{AttemptId, AuthResult, AuthAttempt};
+use crate::types::{AttemptId, AuthResult, AuthAttempt, AuthzId};
 use tonic::async_trait;
-use crate::AuthProvider;
 
 #[derive(Clone, Debug)]
 pub struct PlainAssertion {
@@ -9,17 +8,20 @@ pub struct PlainAssertion {
     pub password: String,
 }
 
+/// Provides the `PLAIN` SASL mechanism
 #[async_trait]
-pub(crate) trait PlainAuthProvider: AuthProvider {
+pub(crate) trait PlainAuthProvider {
 
     async fn attempt_plain (
         &self,
-        attempt: AuthAttempt<PlainAssertion>,
+        attempt: &AuthAttempt<PlainAssertion>,
     ) -> AuthResult;
 
 }
 
-// https://www.rfc-editor.org/rfc/rfc6750
+/// Provides the `OAUTHBEARER` SASL mechanism.
+///
+/// See [IETF RFC 6750](https://www.rfc-editor.org/rfc/rfc6750)
 pub(crate) trait OAuthBearerProvider {
 
     async fn attempt_oauth_bearer (
@@ -32,17 +34,62 @@ pub(crate) trait OAuthBearerProvider {
 
 }
 
-// https://www.rfc-editor.org/rfc/rfc2444.html
+#[derive(Debug)]
+pub struct OTPIdentityAssertion <'a> {
+    pub authzid: Option<&'a str>,
+    pub authcid: &'a str,
+}
+
+#[derive(Debug, Clone)]
+pub struct OTPChallenge {
+    pub alg: String,
+    pub seq: usize,
+    pub seed: String,
+}
+
+/// Provides the `OTP` SASL mechanism.
+///
+/// See [IETF RFC 2444](https://www.rfc-editor.org/rfc/rfc2444.html).
 pub(crate) trait OTPProvider {
 
-    async fn assert_otp_authzid (
+    /// Returns Ok(None) if user does not exist.
+    async fn get_otp_challenge (
+        &mut self,
         attempt_id: AttemptId,
-        authzid: String,
-    ) -> Result<(), ()>;
+        authcid: &str,
+        authzid: Option<&str>,
+    ) -> anyhow::Result<Option<OTPChallenge>>;
 
     async fn attempt_otp(
+        &mut self,
         attempt_id: AttemptId,
         assertion: String,
-    ) -> Result<(), ()>;
+    ) -> AuthResult;
+
+}
+
+pub type ExternalAssertion = Option<AuthzId>;
+
+/// Provides the `EXTERNAL` SASL mechanism
+#[async_trait]
+pub(crate) trait ExternalProvider {
+
+    async fn attempt_external (
+        &self,
+        attempt: &AuthAttempt<ExternalAssertion>,
+    ) -> AuthResult;
+
+}
+
+pub type AnonymousAssertion = Option<AuthzId>;
+
+/// Provides the `ANONYMOUS` SASL mechanism
+#[async_trait]
+pub(crate) trait AnonymousProvider {
+
+    async fn attempt_anon (
+        &self,
+        attempt: &AuthAttempt<AnonymousAssertion>,
+    ) -> AuthResult;
 
 }

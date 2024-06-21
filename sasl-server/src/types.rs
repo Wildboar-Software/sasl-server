@@ -1,9 +1,11 @@
 use std::net::SocketAddr;
+use ulid::Ulid;
 
 use crate::grpc::saslproto::{AuthenticateResult, TlsInformation};
 
 pub type UserId = String;
-pub type AttemptId = [u8; 16];
+pub type AuthzId = UserId;
+pub type AttemptId = Ulid;
 
 #[derive(Clone, Debug)]
 pub struct AuthAttempt <AssertionType>
@@ -35,3 +37,22 @@ pub struct AuthAttempt <AssertionType>
 }
 
 pub type AuthResult = anyhow::Result<AuthenticateResult>;
+
+
+impl <T> Default for AuthAttempt<T>
+    where T: Default + Clone {
+
+    fn default() -> Self {
+        AuthAttempt {
+            id: Ulid::new(),
+            assertion: T::default(),
+            ignore_penalty: false,
+            local_addr: None,
+            remote_addr: None,
+            requested_host: None,
+            submitted_securely: None,
+            tls_info: None,
+        }
+    }
+
+}
